@@ -237,5 +237,5 @@ async function runEX2() {
     console.error(err);
   }
 }
-//runEX1();
+runEX1();
 runEX2();
