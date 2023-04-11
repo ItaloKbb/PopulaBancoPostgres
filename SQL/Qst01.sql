@@ -38,6 +38,33 @@ SELECT * FROM embarque;
 --DELETE FROM FORNECEDOR;
 --DELETE FROM PECA;
 
-SELECT P.Codpeca, P.Nomepeca, E.QuantidadeEmbarque
- FROM peca P JOIN Embarque E ON P.Codpeca = E.Codpeca AND
-E.QuantidadeEmbarque > 100;
+CREATE VIEW view_peca AS
+SELECT P.CodPeca, P.NomePeca
+FROM Peca P JOIN Embarque E 
+ON P.CodPeca = E.codpeca AND E.QuantidadeEmbarque > 100;
+
+SELECT * FROM view_peca;
+
+--------------------------------
+
+CREATE OR REPLACE PROCEDURE procedure_peca()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    result CURSOR FOR SELECT * FROM view_peca;
+    row record;
+BEGIN
+    OPEN result;
+    FETCH NEXT FROM result INTO row;
+    IF FOUND THEN
+        RAISE NOTICE 'CodPeça: %, NomePeça: %', row.CodPeca, row.NomePeca;
+    END IF;
+    CLOSE result;
+END;
+$$;
+
+CALL procedure_peca();
+
+------------------------------------
+
+CREATE INDEX CodPeca_index ON Peca(CodPeca);

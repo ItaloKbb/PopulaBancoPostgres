@@ -85,3 +85,35 @@ FROM CLIENTE CL INNER JOIN CONTA CO ON CL.cod_cliente = CO.cod_cliente
 INNER JOIN historico_movimentacao HM ON CO.num_conta = HM.num_conta
 GROUP BY CL.cod_cliente, CL.cod_cliente
 ORDER BY AVG(HM.val_movimentacao) DESC
+
+CREATE VIEW cliente_avg_movimentacao AS
+SELECT CL.cod_cliente, AVG(HM.val_movimentacao) AS avg_movimentacao
+FROM CLIENTE CL 
+INNER JOIN CONTA CO ON CL.cod_cliente = CO.cod_cliente
+INNER JOIN historico_movimentacao HM ON CO.num_conta = HM.num_conta
+GROUP BY CL.cod_cliente
+ORDER BY avg_movimentacao DESC;
+
+CREATE OR REPLACE PROCEDURE cliente_avg_movimentacao_proc(
+  OUT cod_cliente integer, 
+  OUT avg_movimentacao numeric
+)
+AS $$
+BEGIN
+  SELECT cod_cliente, avg_movimentacao 
+  INTO cod_cliente, avg_movimentacao 
+  FROM cliente_avg_movimentacao;
+END;
+$$ LANGUAGE plpgsql;
+
+CALL cliente_avg_movimentacao_proc();
+
+CREATE INDEX cliente_idx ON CLIENTE (cod_cliente);
+CREATE INDEX conta_idx ON CONTA (cod_cliente, num_conta);
+CREATE INDEX historico_movimentacao_idx ON historico_movimentacao (num_conta, val_movimentacao);
+
+
+
+
+
+
