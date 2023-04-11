@@ -34,15 +34,9 @@ CREATE TABLE IF NOT EXISTS embarque
 );
 SELECT * FROM embarque;
 
+--DELETE FROM embarque;
 --DELETE FROM FORNECEDOR;
 --DELETE FROM PECA;
---DELETE FROM embarque;
-
- SELECT Embarque.CodPeça, Peça.NomePeça
- FROM Peça WHERE CodPeça IN
- (SELECT Embarque.CodPeça
- FROM Embarque
- WHERE Embarque.QuantidadeEmbarque > 100);
 
 SELECT P.Codpeca, P.Nomepeca, E.QuantidadeEmbarque
  FROM peca P JOIN Embarque E ON P.Codpeca = E.Codpeca AND

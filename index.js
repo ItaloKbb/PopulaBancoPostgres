@@ -1,6 +1,7 @@
 const hoaxer = require('hoaxer');
 const { Client } = require('pg');
 const cpfCheck = require('cpf-check');
+const fs = require('fs').promises;
 
 // Configuração de conexão com o banco de dados
 const client = new Client({
@@ -58,26 +59,36 @@ async function runEX1() {
     }
 
     // Inserindo peças no banco de dados
-    let query = 'INSERT INTO PECA (CODPECA, NOMEPECA, CORPECA, PESOPECA) VALUES ($1, $2, $3, $4)';
+    const InsertPecas = 'INSERT INTO PECA (CODPECA, NOMEPECA, CORPECA, PESOPECA) VALUES ($1, $2, $3, $4)';
+    let sql = ""
     for (const peca of pecas) {
+      sql += `INSERT INTO PECA (CODPECA, NOMEPECA, CORPECA, PESOPECA) VALUES (${peca.cod_peca}, '${peca.nome_peca}', '${peca.cor_peca}', ${peca.peso_peca});\n`
       const values = [peca.cod_peca, peca.nome_peca, peca.cor_peca, peca.peso_peca];
-      const res = await client.query(query, values);
+      const res = await client.query(InsertPecas, values);
+
+      fs.writeFile('./Inserts/pecas.sql', sql);
       console.log('Peça inserida com sucesso:', peca);
     }
 
+    sql = ""
     // Inserindo fornecedores no banco de dados
     const insertFornecedorQuery = 'INSERT INTO fornecedor (codfornecedor, nomefornecedor, statusfornecedor) VALUES ($1, $2, $3)';
     for (const fornecedor of fornecedores) {
+      sql += `INSERT INTO fornecedor (codfornecedor, nomefornecedor, statusfornecedor) VALUES (${fornecedor.cod_fornecedor}, '${fornecedor.nome_fornecedor}', '${fornecedor.status_fornecedor}');\n`
       const values = [fornecedor.cod_fornecedor, fornecedor.nome_fornecedor, fornecedor.status_fornecedor];
       const res = await client.query(insertFornecedorQuery, values);
+      fs.writeFile('./Inserts/fornecedor.sql', sql);
       console.log('Fornecedor inserido com sucesso:', fornecedor);
     }
 
+    sql = ""
     // Inserindo embarques no banco de dados
     const insertEmbarqueQuery = 'INSERT INTO embarque (codpeca, codfornecedor, quantidadeembarque) VALUES ($1, $2, $3)';
     for (const embarque of embarques) {
+      sql += `INSERT INTO embarque (codpeca, codfornecedor, quantidadeembarque) VALUES (${embarque.cod_peca}, ${embarque.cod_fornecedor}, ${embarque.quantidade_embarque});\n`
       const values = [embarque.cod_peca, embarque.cod_fornecedor, embarque.quantidade_embarque];
       const res = await client.query(insertEmbarqueQuery, values);
+      fs.writeFile('./Inserts/embarque.sql', sql);
       console.log('Embarque inserido com sucesso:', embarque);
     }
 
@@ -92,7 +103,7 @@ async function runEX2() {
   try {
     // Conexão com o banco de dados
     await client.connect();
-
+    let sql = ""
     // Gerando dados de categoria_cliente aleatórios
     const categoria_clientes = [];
     for (let i = 0; i < 1000; i++) {
@@ -102,11 +113,14 @@ async function runEX2() {
       };
       categoria_clientes.push(categoria_cliente);
     }
+
     // Inserindo categoria_cliente no banco de dados
     const insertCategoriaclientesQuery = 'INSERT INTO categoria_cliente (cod_categoria_cliente, nom_categoria_cliente) VALUES ($1, $2)';
     for (const categoria_cliente of categoria_clientes) {
       const values = [categoria_cliente.cod_categoria_cliente, categoria_cliente.nom_categoria_cliente];
+      sql += `INSERT INTO categoria_cliente (cod_categoria_cliente, nom_categoria_cliente) VALUES (${categoria_cliente.cod_categoria_cliente}, '${categoria_cliente.nom_categoria_cliente})\n'`
       const res = await client.query(insertCategoriaclientesQuery, values);
+      fs.writeFile('./Inserts/categoriaCliente.sql', sql);
       console.log('categoria_cliente inserido com sucesso:', categoria_cliente);
     }
 
@@ -125,10 +139,13 @@ async function runEX2() {
     }
 
     // Inserindo clientes no banco de dados
+    sql = ""
     const insertclientesQuery = 'INSERT INTO cliente (cod_cliente, nom_cliente, num_cpf_cnpj, num_celular, des_endereco, cod_categoria_cliente) VALUES ($1, $2, $3, $4, $5, $6)';
     for (const cliente of clientes) {
       const values = [cliente.cod_cliente, cliente.nome_cliente, cliente.cpf_cnpj, cliente.num_celular, cliente.des_endereco, cliente.cod_categoria_cliente];
       const res = await client.query(insertclientesQuery, values);
+      sql += `INSERT INTO cliente (cod_cliente, nom_cliente, num_cpf_cnpj, num_celular, des_endereco, cod_categoria_cliente) VALUES (${cliente.cod_cliente}, '${cliente.nome_cliente}', '${cliente.cpf_cnpj}', '${cliente.num_celular}', '${cliente.des_endereco}', ${cliente.cod_categoria_cliente})\n`
+      fs.writeFile('./Inserts/cliente.sql', sql);
       console.log('clientes inserido com sucesso:', cliente);
     }
 
@@ -141,16 +158,18 @@ async function runEX2() {
       };
       tipo_contas.push(tipo_conta);
     }
-
-    // Inserindo clientes no banco de dados
+    sql = ""
+    // Inserindo tipo_conta no banco de dados
     const insertTipoContaQuery = 'INSERT INTO tipo_conta (cod_tipo_conta, des_tipo_conta) VALUES ($1, $2)';
     for (const tipo_conta of tipo_contas) {
       const values = [tipo_conta.cod_tipo_conta, tipo_conta.des_tipo_conta];
       const res = await client.query(insertTipoContaQuery, values);
+      sql += `INSERT INTO tipo_conta (cod_tipo_conta, des_tipo_conta) VALUES (${tipo_conta.cod_tipo_conta}, '${tipo_conta.des_tipo_conta}')\n`
+      fs.writeFile('./Inserts/tipoConta.sql', sql);
       console.log('tipo_conta inserido com sucesso:', tipo_conta);
     }
 
-    // Gerando dados de tipo_conta aleatórios
+    // Gerando dados de agencias aleatórios
     const agencias = [];
     for (let i = 0; i < 1000; i++) {
       const agencia = {
@@ -160,11 +179,14 @@ async function runEX2() {
       agencias.push(agencia);
     }
 
-    // Inserindo clientes no banco de dados
+    sql = ""
+    // Inserindo agencias no banco de dados
     const insertAgenciaQuery = 'INSERT INTO agencia (num_agencia, nom_agencia) VALUES ($1, $2)';
     for (const agencia of agencias) {
       const values = [agencia.num_agencia, agencia.nom_agencia];
       const res = await client.query(insertAgenciaQuery, values);
+      sql += `INSERT INTO agencia (num_agencia, nom_agencia) VALUES (${agencia.num_agencia}, '${agencia.nom_agencia}')\n`
+      fs.writeFile('./Inserts/agencia.sql', sql);
       console.log('agencia inserido com sucesso:', agencia);
     }
 
@@ -181,15 +203,18 @@ async function runEX2() {
       contas.push(conta);
     }
 
+    sql = ""
     // Inserindo contas no banco de dados
     const insertContaQuery = 'INSERT INTO conta (num_conta, val_saldo, cod_tipo_conta, cod_cliente, num_agencia) VALUES ($1, $2, $3, $4, $5)';
     for (const conta of contas) {
       const values = [conta.num_conta, conta.val_saldo, conta.cod_tipo_conta, conta.cod_cliente, conta.num_agencia];
       const res = await client.query(insertContaQuery, values);
+      sql += `INSERT INTO conta (num_conta, val_saldo, cod_tipo_conta, cod_cliente, num_agencia) VALUES (${conta.num_conta}, ${conta.val_saldo}, ${conta.cod_tipo_conta}, ${conta.cod_cliente}, ${conta.num_agencia})\n`
+      fs.writeFile('./Inserts/conta.sql', sql);
       console.log('conta inserida com sucesso:', conta);
     }
 
-    // Gerando dados de tipo_conta aleatórios
+    // Gerando dados de tipo_movimentacoes aleatórios
     const tipo_movimentacoes = [];
     for (let i = 0; i < 1000; i++) {
       const tipo_movimentacao = {
@@ -201,15 +226,18 @@ async function runEX2() {
       tipo_movimentacoes.push(tipo_movimentacao);
     }
 
-    // Inserindo clientes no banco de dados
+    sql = ""
+    // Inserindo tipo_movimentacoes no banco de dados
     const insertTipoMovimentoQuery = 'INSERT INTO tipo_movimentacao (cod_tipo_movimentacao, des_tipo_movimentacao, val_taxa, ind_debito_credito) VALUES ($1, $2, $3, $4)';
     for (const tipo_movimentacao of tipo_movimentacoes) {
       const values = [tipo_movimentacao.cod_tipo_movimentacao, tipo_movimentacao.des_tipo_movimentacao, tipo_movimentacao.val_taxa, tipo_movimentacao.ind_debito_credito];
       const res = await client.query(insertTipoMovimentoQuery, values);
+      sql += `INSERT INTO tipo_movimentacao (cod_tipo_movimentacao, des_tipo_movimentacao, val_taxa, ind_debito_credito) VALUES  (${tipo_movimentacao.cod_tipo_movimentacao}, '${tipo_movimentacao.des_tipo_movimentacao}', ${tipo_movimentacao.val_taxa}, '${tipo_movimentacao.ind_debito_credito}')\n`
+      fs.writeFile('./Inserts/tipoMovimentacao.sql', sql);
       console.log('tipo_movimentacao inserido com sucesso:', tipo_movimentacao);
     }
-
-    // Gerando dados de tipo_conta aleatórios
+    
+    // Gerando dados de historico_movimentacoes aleatórios
     const historico_movimentacoes = [];
     for (let i = 0; i < 1000; i++) {
       const historico_movimentacao = {
@@ -222,11 +250,15 @@ async function runEX2() {
       historico_movimentacoes.push(historico_movimentacao);
     }   
     
-    // Inserindo clientes no banco de dados
+    sql = ""
+    // Inserindo historico_movimentacoes no banco de dados
     const insertHistoricoQuery = 'INSERT INTO historico_movimentacao (cod_historico_movimentacao, num_conta, cod_tipo_movimentacao, val_movimentacao, dta_movimentacao) VALUES ($1, $2, $3, $4, $5)';
     for (const historico_movimentacao of historico_movimentacoes) {
       const values = [historico_movimentacao.cod_historico_movimentacao, historico_movimentacao.num_conta, historico_movimentacao.cod_tipo_movimentacao, historico_movimentacao.val_movimentacao, historico_movimentacao.dta_movimentacao];
       const res = await client.query(insertHistoricoQuery, values);
+      historico_movimentacao.val_movimentacao, historico_movimentacao.dta_movimentacao
+      sql += `INSERT INTO historico_movimentacao (cod_historico_movimentacao, num_conta, cod_tipo_movimentacao, val_movimentacao, dta_movimentacao) VALUES (${historico_movimentacao.cod_historico_movimentacao}, ${historico_movimentacao.num_conta}, ${historico_movimentacao.cod_tipo_movimentacao}, ${historico_movimentacao.val_movimentacao}, '${historico_movimentacao.dta_movimentacao})'\n`
+      fs.writeFile('./Inserts/historicoMovimentacoes.sql', sql);
       console.log('historico_movimentacao inserido com sucesso:', historico_movimentacao);
     }
 
@@ -237,5 +269,5 @@ async function runEX2() {
     console.error(err);
   }
 }
-runEX1();
+//runEX1();
 runEX2();
